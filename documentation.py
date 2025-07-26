@@ -27,45 +27,9 @@ plt.savefig("price_chart.png")
 plt.close()
 
 # --- 4. Start Report from Template ---
-doc = # --- 7b. Add Valuation Section ---
-doc.add_heading("Valuation", level=1)
-
-# --- DDM Calculation (Dividend Discount Model) ---
-# Assumptions (replace with real data or automate fetching)
-dividend = info.get('dividendRate', 0)  # Annual dividend per share
-div_growth = 0.05  # 5% growth rate (example)
-cost_of_equity = 0.08  # 8% required return (example)
-
-if dividend > 0 and cost_of_equity > div_growth:
-    ddm_value = dividend * (1 + div_growth) / (cost_of_equity - div_growth)
-    doc.add_paragraph(f"DDM Valuation: ${ddm_value:.2f} per share (Dividend: ${dividend:.2f}, Growth: {div_growth*100:.1f}%, Cost of Equity: {cost_of_equity*100:.1f}%)")
-else:
-    doc.add_paragraph("DDM Valuation: Not applicable (missing dividend or invalid growth/discount rates)")
-
-# --- DCF Calculation (Discounted Cash Flow, simple version) ---
-# Assumptions (replace with real data or automate fetching)
-fcf = info.get('freeCashflow', 0)  # Most recent free cash flow
-fcf_growth = 0.04  # 4% growth rate (example)
-discount_rate = 0.08  # 8% discount rate (example)
-terminal_growth = 0.03  # 3% terminal growth (example)
-years = 5
-
-if fcf and fcf > 0:
-    dcf_sum = 0
-    for t in range(1, years+1):
-        dcf_sum += (fcf * (1 + fcf_growth) ** t) / ((1 + discount_rate) ** t)
-    terminal_value = (fcf * (1 + fcf_growth) ** years) * (1 + terminal_growth) / ((discount_rate - terminal_growth) * (1 + discount_rate) ** years)
-    dcf_value = dcf_sum + terminal_value
-    shares_outstanding = info.get('sharesOutstanding', 1)
-    dcf_per_share = dcf_value / shares_outstanding
-    doc.add_paragraph(f"DCF Valuation: ${dcf_per_share:.2f} per share (FCF: ${fcf:.2f}, Growth: {fcf_growth*100:.1f}%, Discount Rate: {discount_rate*100:.1f}%)")
-else:
-    doc.add_paragraph("DCF Valuation: Not applicable (missing or invalid free cash flow data)")
-
-# --- End of Valuation Section ---REPORT_TEMPLATE)
+doc = Document(REPORT_TEMPLATE)
 
 # --- 5. Fill Executive Summary (Page 1) ---
-# (You need to adapt this to your template's structure and styles)
 doc.paragraphs[0].text = f"Stock Analysis Report: {info['shortName']} ({TICKER})"
 doc.add_paragraph(f"Exchange: {info.get('exchange', 'N/A')}")
 doc.add_paragraph(f"Analysis Date: {ANALYSIS_DATE}")
@@ -89,8 +53,42 @@ table.add_row().cells[0].text = 'Revenue'
 table.rows[1].cells[1].text = str(info.get('totalRevenue', 'N/A'))
 table.rows[1].cells[2].text = str(datetime.now().year)
 
+# --- 7b. Add Valuation Section ---
+doc.add_heading("Valuation", level=1)
+
+# --- DDM Calculation (Dividend Discount Model) ---
+dividend = info.get('dividendRate', 0)  # Annual dividend per share
+div_growth = 0.05  # 5% growth rate (example)
+cost_of_equity = 0.08  # 8% required return (example)
+
+if dividend > 0 and cost_of_equity > div_growth:
+    ddm_value = dividend * (1 + div_growth) / (cost_of_equity - div_growth)
+    doc.add_paragraph(f"DDM Valuation: ${ddm_value:.2f} per share (Dividend: ${dividend:.2f}, Growth: {div_growth*100:.1f}%, Cost of Equity: {cost_of_equity*100:.1f}%)")
+else:
+    doc.add_paragraph("DDM Valuation: Not applicable (missing dividend or invalid growth/discount rates)")
+
+# --- DCF Calculation (Discounted Cash Flow, simple version) ---
+fcf = info.get('freeCashflow', 0)  # Most recent free cash flow
+fcf_growth = 0.04  # 4% growth rate (example)
+discount_rate = 0.08  # 8% discount rate (example)
+terminal_growth = 0.03  # 3% terminal growth (example)
+years = 5
+
+if fcf and fcf > 0:
+    dcf_sum = 0
+    for t in range(1, years+1):
+        dcf_sum += (fcf * (1 + fcf_growth) ** t) / ((1 + discount_rate) ** t)
+    terminal_value = (fcf * (1 + fcf_growth) ** years) * (1 + terminal_growth) / ((discount_rate - terminal_growth) * (1 + discount_rate) ** years)
+    dcf_value = dcf_sum + terminal_value
+    shares_outstanding = info.get('sharesOutstanding', 1)
+    dcf_per_share = dcf_value / shares_outstanding
+    doc.add_paragraph(f"DCF Valuation: ${dcf_per_share:.2f} per share (FCF: ${fcf:.2f}, Growth: {fcf_growth*100:.1f}%, Discount Rate: {discount_rate*100:.1f}%)")
+else:
+    doc.add_paragraph("DCF Valuation: Not applicable (missing or invalid free cash flow data)")
+
 # --- 8. Save Report ---
 doc.save(OUTPUT_REPORT)
 
 print(f"Report generated: {OUTPUT_REPORT}")
+
 
