@@ -4,12 +4,15 @@ import matplotlib.pyplot as plt
 from docx import Document
 from docx.shared import Inches
 from datetime import datetime
+import streamlit as st
+from io import BytesIO
 
 # --- 1. User Inputs ---
 TICKER = "NEE"
 ANALYSIS_DATE = "2024-12-31"
 REPORT_TEMPLATE = "your_template.docx"
-OUTPUT_REPORT = "Stock_Report_NEE.docx"
+
+st.title("Stock Analysis Report Generator")
 
 # --- 2. Fetch Data ---
 stock = yf.Ticker(TICKER)
@@ -86,9 +89,17 @@ if fcf and fcf > 0:
 else:
     doc.add_paragraph("DCF Valuation: Not applicable (missing or invalid free cash flow data)")
 
-# --- 8. Save Report ---
-doc.save(OUTPUT_REPORT)
+# --- 8. Download Report ---
+buffer = BytesIO()
+doc.save(buffer)
+buffer.seek(0)
 
-print(f"Report generated: {OUTPUT_REPORT}")
+st.success("Report generated!")
+st.download_button(
+    label="Download Word Report",
+    data=buffer,
+    file_name=f"Stock_Report_{TICKER}.docx",
+    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+)
 
 
